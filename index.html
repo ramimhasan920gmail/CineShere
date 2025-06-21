@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTT-Style Web App</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Shared and Homepage Styles */
+        body {
+            background-color: #1a1a1a; /* Default to dark mode */
+            color: #f8f9fa; /* Default text color */
+            transition: background-color 0.3s, color 0.3s;
+            padding-bottom: 70px; /* Space for fixed bottom nav */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        body.light-mode {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+
+        /* Navbar */
+        .navbar-dark {
+            background-color: #1a1a1a !important;
+            border-bottom: 1px solid #333;
+        }
+        body.light-mode .navbar-dark {
+            background-color: #f8f9fa !important;
+            border-bottom: 1px solid #e9ecef;
+        }
+        body.light-mode .navbar-brand,
+        body.light-mode .navbar-nav .nav-link {
+            color: #212529 !important;
+        }
+        body.light-mode .btn-outline-light {
+            color: #212529;
+            border-color: #212529;
+        }
+        body.light-mode .btn-outline-light:hover {
+            background-color: #212529;
+            color: #f8f9fa;
+        }
+        body.light-mode .btn-outline-info {
+            color: #0dcaf0;
+            border-color: #0dcaf0;
+        }
+        body.light-mode .btn-outline-info:hover {
+            background-color: #0dcaf0;
+            color: #f8f9fa;
+        }
+
+        /* Movie Card */
+        .movie-card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.light-mode .movie-card {
+            background-color: #ffffff;
+            color: #212529;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 150px; /* Height for homepage cards */
+            object-fit: cover;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .movie-card .card-body {
+            padding: 10px; /* Padding for index.html */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card .card-title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #f8f9fa;
+        }
+
+        body.light-mode .movie-card .card-title {
+            color: #212529;
+        }
+
+        .movie-card .card-text {
+            font-size: 0.8rem;
+            color: #bbb;
+            margin-bottom: 10px;
+        }
+
+        body.light-mode .movie-card .card-text {
+            color: #6c757d;
+        }
+
+        .movie-card .card-category {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #0d6efd;
+            margin-bottom: 10px;
+        }
+
+        .movie-card .btn {
+            width: 100%;
+            margin-top: auto;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        .movie-card .btn-primary {
+            background-color: #0d6efd; /* Consistent primary color */
+            border-color: #0d6efd;
+        }
+        .movie-card .btn-secondary { /* Watch History secondary button */
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+
+        /* Form Controls */
+        .form-control, .form-select {
+            background-color: #343a40;
+            color: #f8f9fa;
+            border-color: #495057;
+        }
+        .form-control::placeholder {
+            color: #ced4da;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #343a40;
+            color: #f8f9fa;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1a1a1a !important;
+        }
+
+        /* Watch History specific styles */
+        #watchHistory .card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #noHistoryMessage {
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* --- Carousel/Slider Specific Styles --- */
+        #featuredCarousel {
+            margin-top: 20px;
+            margin-bottom: 3rem;
+        }
+        .carousel-item-custom {
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+        .carousel-item-custom::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            z-index: 1;
+        }
+        .carousel-caption-custom {
+            position: relative;
+            z-index: 2;
+            text-align: left;
+            left: auto;
+            right: auto;
+            bottom: auto;
+            width: 100%;
+        }
+        .carousel-caption-custom h5 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .carousel-caption-custom p {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .carousel-indicators [data-bs-target] {
+            background-color: #fff;
+            opacity: 0.5;
+        }
+        .carousel-indicators .active {
+            opacity: 1;
+        }
+        /* CRITICAL: Bootstrap Carousel Item Fixes */
+        .carousel-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .carousel-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            transition: transform 0.6s ease-in-out;
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+        .carousel-item.active {
+            position: relative;
+            display: block;
+            transform: translateX(0);
+        }
+        .carousel-item-next, .carousel-item-prev, .carousel-item.active.carousel-item-start, .carousel-item.active.carousel-item-end {
+            display: block;
+            position: absolute;
+        }
+
+        /* --- Bottom Navigation Bar Styles --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1a1a1a;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+        }
+        .nav-item-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #bbb;
+            font-size: 0.8rem;
+            transition: color 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .nav-item-bottom i {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        .nav-item-bottom.active {
+            color: #0d6efd;
+        }
+        .nav-item-bottom:hover {
+            color: #f8f9fa;
+        }
+
+        /* --- Custom Grid Layout for 2 Columns (Homepage) --- */
+        /* Use Bootstrap's .row and .g-4 for gutters */
+        /* Columns will automatically align to 2 per row on screens sm and up */
+        .row.row-cols-md-2.row-cols-lg-2 > .col {
+            /* This ensures 2 items per row on larger screens */
+            width: 50% !important;
+            max-width: 50% !important;
+        }
+        @media (min-width: 576px) { /* Small devices (sm) and up */
+            .row.row-cols-sm-2 > .col {
+                width: 50% !important;
+                max-width: 50% !important;
+            }
+        }
+        @media (max-width: 575.98px) { /* Extra small devices (xs) */
+            .row.row-cols-1 > .col {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+    </style>
+</head>
+<body class="bg-dark text-white">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">📺 CineSphere</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light me-2" id="darkModeToggle">
+                            <i class="fas fa-moon" id="darkModeIcon"></i> <span class="d-none d-md-inline">Dark Mode</span>
+                        </button>
+                    </li>
+                    <!-- Removed Admin Panel Link as requested -->
+                    <!-- <li class="nav-item">
+                        <a class="btn btn-outline-info" href="admin/index.html">Admin Panel</a>
+                    </li> -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Featured Carousel (Slider) Section -->
+    <div id="featuredCarousel" class="carousel slide">
+        <div class="carousel-indicators" id="carouselIndicators">
+            <!-- Indicators will be generated by JS -->
+        </div>
+        <div class="carousel-inner" id="carouselInner">
+            <div class="carousel-item active carousel-item-custom" style="background-image: url('https://source.unsplash.com/random/1600x900/?movie-banner,abstract')">
+                <div class="carousel-caption-custom d-md-block">
+                    <h5>Loading Featured Videos...</h5>
+                    <p>Please wait while content loads.</p>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <main class="container my-5">
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <input type="text" class="form-control" id="searchBar" placeholder="Search movies by title...">
+            </div>
+            <div class="col-md-6 mb-3">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <!-- Categories will be populated by JS -->
+                </select>
+            </div>
+        </div>
+
+        <h2 class="mb-4">Our Collection</h2>
+        <div id="movieGrid" class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-2 g-4"> <!-- 2 posts per row -->
+            <!-- Movie cards will be rendered here by JavaScript -->
+        </div>
+
+        <hr class="my-5">
+
+        <h2 class="mb-4">Your Watch History</h2>
+        <div id="watchHistory" class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-2 g-4"> <!-- 2 posts per row -->
+            <p id="noHistoryMessage" class="text-muted col-12">No watch history yet. Start watching some movies!</p>
+            <!-- Watch history cards will be rendered here by JavaScript -->
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white-50 py-4 mt-5">
+        <div class="container text-center">
+            <p>© 2024 CineSphere. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item-bottom active" id="bottomNavHome">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item-bottom" id="bottomNavAnime">
+            <i class="fas fa-film"></i>
+            <span>এনিমে</span>
+        </a>
+        <a href="#" class="nav-item-bottom" id="bottomNavMovies">
+            <i class="fas fa-video"></i>
+            <span>মুভি</span>
+        </a>
+        <a href="#" class="nav-item-bottom" id="bottomNavWatchHistory">
+            <i class="fas fa-history"></i>
+            <span>ওয়াচ হিস্টোরি</span>
+        </a>
+    </nav>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase SDKs for Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script>
+        // Your Firebase configuration (REPLACE WITH YOUR ACTUAL CONFIG)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtZuh6HPTPeXgnPy60pQDfC2NnpWLRtS4",
+            authDomain: "taka-income-korbo.firebaseapp.com",
+            databaseURL: "https://taka-income-korbo-default-rtdb.firebaseio.com", // Your provided RTDB URL
+            projectId: "taka-income-korbo",
+            storageBucket: "taka-income-korbo.appspot.com",
+            messagingSenderId: "991679342035", // Derived from App ID or actual from console
+            appId: "1:991679342035:android:fac5f1f34a262c45a73b26"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to all necessary DOM elements
+            const movieGrid = document.getElementById('movieGrid');
+            const searchBar = document.getElementById('searchBar');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const watchHistoryContainer = document.getElementById('watchHistory');
+            const noHistoryMessage = document.getElementById('noHistoryMessage');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            const carouselIndicators = document.getElementById('carouselIndicators');
+            const carouselInner = document.getElementById('carouselInner');
+            
+            // --- Navigation Elements (Bottom Nav) ---
+            const bottomNavHome = document.getElementById('bottomNavHome');
+            const bottomNavAnime = document.getElementById('bottomNavAnime');
+            const bottomNavMovies = document.getElementById('bottomNavMovies'); 
+            const bottomNavWatchHistory = document.getElementById('bottomNavWatchHistory');
+
+
+            let allContent = []; // Stores general movies and anime series (series-level)
+            let categories = new Set();
+            let bootstrapCarouselInstance; // To store carousel instance
+
+            // --- Dark Mode Toggle ---
+            const applyTheme = (theme) => {
+                document.body.classList.remove('dark-mode', 'light-mode');
+                document.body.classList.add(theme);
+                localStorage.setItem('theme', theme);
+                darkModeIcon.classList.toggle('fa-sun', theme === 'light-mode');
+                darkModeIcon.classList.toggle('fa-moon', theme === 'dark-mode');
+            };
+
+            // Check saved theme or default to dark
+            const savedTheme = localStorage.getItem('theme') || 'dark-mode';
+            applyTheme(savedTheme);
+
+            darkModeToggle.addEventListener('click', () => {
+                const currentTheme = localStorage.getItem('theme');
+                applyTheme(currentTheme === 'dark-mode' ? 'light-mode' : 'dark-mode');
+            });
+
+
+            // --- Fetch Movies and Anime Series from Firebase Realtime Database ---
+            const fetchAllContent = async () => {
+                try {
+                    const moviesRef = database.ref('movies');
+                    const seriesRef = database.ref('anime_series');
+
+                    const [moviesSnapshot, seriesSnapshot] = await Promise.all([
+                        moviesRef.once('value'),
+                        seriesRef.once('value')
+                    ]);
+
+                    let generalMovies = [];
+                    if (moviesSnapshot.val()) {
+                        generalMovies = Object.keys(moviesSnapshot.val()).map(key => ({
+                            id: key,
+                            type: 'movie', // Add type for differentiation
+                            ...moviesSnapshot.val()[key]
+                        }));
+                    }
+
+                    let animeSeries = [];
+                    if (seriesSnapshot.val()) {
+                        animeSeries = Object.keys(seriesSnapshot.val()).map(key => ({
+                            id: key,
+                            type: 'series', // Add type for differentiation
+                            // When fetching series for index.html, we don't need all episode details.
+                            // Just enough info to display the series card.
+                            // If episodes are needed in watch history, they will be fetched individually.
+                            // The episodeCount is useful for display.
+                            episodeCount: seriesSnapshot.val()[key].episodes ? Object.keys(seriesSnapshot.val()[key].episodes).length : 0,
+                            ...seriesSnapshot.val()[key]
+                        }));
+                    }
+
+                    // Combine all content and sort (e.g., newest first based on ID as a proxy for timestamp)
+                    allContent = [...generalMovies, ...animeSeries];
+                    allContent.sort((a, b) => b.id.localeCompare(a.id)); 
+
+                    populateCategories();
+                    renderCarousel(allContent.slice(0, 5)); // Featured in carousel
+                    renderContent(); // All content in main grid
+                    renderWatchHistory();
+
+                } catch (error) {
+                    console.error('Error fetching all content from Firebase Realtime Database:', error);
+                    movieGrid.innerHTML = '<p class="col-12 text-center text-danger">Failed to load content. Please try again later.</p>';
+                }
+            };
+
+            // --- Render Carousel (Slider) ---
+            const renderCarousel = (contentList) => {
+                if (bootstrapCarouselInstance) {
+                    bootstrapCarouselInstance.dispose();
+                }
+
+                carouselIndicators.innerHTML = '';
+                carouselInner.innerHTML = '';
+
+                if (contentList.length === 0) {
+                    carouselInner.innerHTML = `
+                        <div class="carousel-item active carousel-item-custom" style="background-image: url('https://source.unsplash.com/random/1600x900/?movie-banner,abstract')">
+                            <div class="carousel-caption-custom d-md-block">
+                                <h5>No Featured Content Yet</h5>
+                                <p>Admin can add new movies/series to display here.</p>
+                            </div>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        const featuredCarouselElement = document.getElementById('featuredCarousel');
+                        bootstrapCarouselInstance = new bootstrap.Carousel(featuredCarouselElement, {
+                            interval: 3000,
+                            pause: 'hover'
+                        });
+                        bootstrapCarouselInstance.to(0);
+                    }, 0); 
+                    return;
+                }
+
+                contentList.forEach((content, index) => {
+                    const id = content.id;
+                    const type = content.type;
+                    let url;
+                    if (type === 'movie') {
+                        url = `watch.html?vid=${id}`;
+                    } else if (type === 'series') {
+                        // For series, link to series page. watch.html will handle playing first episode.
+                        url = `watch.html?sid=${id}`; 
+                    } else {
+                        url = '#'; // Fallback
+                    }
+                    
+                    const indicator = document.createElement('button');
+                    indicator.type = 'button';
+                    indicator.setAttribute('data-bs-target', '#featuredCarousel');
+                    indicator.setAttribute('data-bs-slide-to', index);
+                    indicator.setAttribute('aria-label', `Slide ${index + 1}`);
+                    if (index === 0) {
+                        indicator.classList.add('active');
+                        indicator.setAttribute('aria-current', 'true');
+                    }
+                    carouselIndicators.appendChild(indicator);
+
+                    const carouselItem = `
+                        <div class="carousel-item carousel-item-custom ${index === 0 ? 'active' : ''}" style="background-image: url('${content.thumbnail || 'https://source.unsplash.com/random/1600x900/?film,poster'}')">
+                            <div class="carousel-caption-custom d-md-block">
+                                <h5>${content.title}</h5>
+                                <p>${content.category || 'N/A'}</p>
+                                <a href="${url}" class="btn btn-danger btn-sm"><i class="fas fa-play me-2"></i> Watch Now</a>
+                            </div>
+                        </div>
+                    `;
+                    carouselInner.innerHTML += carouselItem;
+                });
+
+                setTimeout(() => {
+                    const featuredCarouselElement = document.getElementById('featuredCarousel');
+                    bootstrapCarouselInstance = new bootstrap.Carousel(featuredCarouselElement, {
+                        interval: 3000,
+                        pause: 'hover'
+                    });
+                    bootstrapCarouselInstance.to(0);
+                }, 0);
+            };
+
+            // --- Populate Category Filter ---
+            const populateCategories = () => {
+                categories.clear();
+                allContent.forEach(content => {
+                    if (content.category) categories.add(content.category);
+                });
+
+                categoryFilter.innerHTML = '<option value="">All Categories</option>';
+                Array.from(categories).sort().forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoryFilter.appendChild(option);
+                });
+            };
+
+            // --- Render Content to Grid (2 columns for Homepage) ---
+            const renderContent = () => {
+                const searchTerm = searchBar.value.toLowerCase();
+                const selectedCategory = categoryFilter.value;
+
+                const filteredContent = allContent.filter(content => {
+                    const matchesSearch = content.title && content.title.toLowerCase().includes(searchTerm);
+                    const matchesCategory = selectedCategory === '' || (content.category && content.category === selectedCategory);
+                    return matchesSearch && matchesCategory;
+                });
+
+                movieGrid.innerHTML = '';
+
+                if (filteredContent.length === 0) {
+                    movieGrid.innerHTML = '<p class="col-12 text-center text-muted">No content found matching your criteria.</p>';
+                    return;
+                }
+
+                filteredContent.forEach(content => {
+                    const id = content.id;
+                    const type = content.type;
+                    let url;
+                    if (type === 'movie') {
+                        url = `watch.html?vid=${id}`;
+                    } else if (type === 'series') {
+                        // For series, link to series page. watch.html will handle playing first episode.
+                        url = `watch.html?sid=${id}`; 
+                    } else {
+                        url = '#'; // Fallback
+                    }
+
+                    const contentCard = `
+                        <div class="col">
+                            <div class="card movie-card">
+                                <img src="${content.thumbnail || 'https://via.placeholder.com/150x150?text=No+Image'}" class="card-img-top" alt="${content.title} thumbnail">
+                                <div class="card-body">
+                                    <h5 class="card-title">${content.title}</h5>
+                                    <p class="card-text card-category">${content.category || 'N/A'}${content.type === 'series' ? ` (${content.episodeCount} episodes)` : ''}</p>
+                                    <a href="${url}" class="btn btn-primary mt-auto"><i class="fas fa-play me-2"></i>Watch Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    movieGrid.innerHTML += contentCard;
+                });
+            };
+
+            // --- Watch History (2 columns) ---
+            const getWatchHistory = () => {
+                const history = localStorage.getItem('watchHistory');
+                return history ? JSON.parse(history) : [];
+            };
+
+            const renderWatchHistory = () => {
+                const history = getWatchHistory();
+                watchHistoryContainer.innerHTML = '';
+
+                if (history.length === 0) {
+                    noHistoryMessage.style.display = 'block';
+                    return;
+                } else {
+                    noHistoryMessage.style.display = 'none';
+                }
+
+                const uniqueHistoryIds = [];
+                const seenIds = new Set();
+                for (let i = history.length - 1; i >= 0; i--) {
+                    const contentId = history[i]; // Can be movie_id or series:sid:epid
+                    if (!seenIds.has(contentId)) {
+                        uniqueHistoryIds.push(contentId);
+                        seenIds.add(contentId);
+                    }
+                }
+
+                const historyContent = uniqueHistoryIds
+                    .map(fullId => {
+                        // Attempt to parse history ID
+                        const parts = fullId.split(':');
+                        if (parts.length === 4 && parts[0] === 'series') { // anime episode format
+                            const seriesId = parts[1];
+                            const episodeId = parts[3];
+                            // To get episode details, we need to find the series first
+                            const seriesObj = allContent.find(item => item.id === seriesId && item.type === 'series');
+                            if (seriesObj && seriesObj.episodes) { // episodes data would ideally be loaded here or fetched
+                                // For Watch History, allContent might not have nested episodes.
+                                // It's better to fetch specific episode if needed, but for simplicity:
+                                // if we can't find episode details in allContent, just use series thumbnail/title
+                                const episodeDetails = seriesObj.episodes[episodeId]; // Assume episodes are directly on seriesObj for now
+                                return {
+                                    id: episodeId,
+                                    seriesId: seriesId,
+                                    type: 'episode',
+                                    title: `${seriesObj.title || 'Series'} - Episode ${episodeDetails ? episodeDetails.episode_number : episodeId}`,
+                                    thumbnail: episodeDetails ? episodeDetails.thumbnail : seriesObj.thumbnail,
+                                    category: seriesObj.category
+                                };
+                            }
+                        } else if (parts.length === 1) { // Regular movie ID
+                            return allContent.find(item => item.id === fullId && item.type === 'movie');
+                        }
+                        return null; // Not found or invalid format
+                    })
+                    .filter(Boolean);
+
+                if (historyContent.length === 0 && history.length > 0) {
+                     localStorage.removeItem('watchHistory');
+                    noHistoryMessage.style.display = 'block';
+                    return;
+                } else if (historyContent.length === 0) {
+                    noHistoryMessage.style.display = 'block';
+                    return;
+                }
+
+                historyContent.forEach(content => {
+                    let url;
+                    if (content.type === 'movie') {
+                        url = `watch.html?vid=${content.id}`;
+                    } else if (content.type === 'episode') {
+                        url = `watch.html?sid=${content.seriesId}&epid=${content.id}`;
+                    } else {
+                        url = '#';
+                    }
+
+                    const historyCard = `
+                        <div class="col">
+                            <div class="card movie-card">
+                                <img src="${content.thumbnail || 'https://via.placeholder.com/150x150?text=No+Image'}" class="card-img-top" alt="${content.title} thumbnail">
+                                <div class="card-body">
+                                    <h5 class="card-title">${content.title}</h5>
+                                    <p class="card-text card-category">${content.category || 'N/A'}</p>
+                                    <a href="${url}" class="btn btn-secondary mt-auto"><i class="fas fa-redo me-2"></i>Watch Again</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    watchHistoryContainer.innerHTML += historyCard;
+                });
+            };
+
+            // --- Navigation Item Event Listeners (Bottom Nav) ---
+            bottomNavHome.addEventListener('click', (e) => {
+                e.preventDefault();
+                searchBar.value = '';
+                categoryFilter.value = '';
+                renderContent();
+                document.querySelectorAll('.bottom-nav .nav-item-bottom').forEach(item => item.classList.remove('active'));
+                bottomNavHome.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            bottomNavAnime.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = `all_movies.html?category=Anime`;
+            });
+
+            bottomNavMovies.addEventListener('click', (e) => { 
+                e.preventDefault();
+                window.location.href = `all_movies.html?category=Movie`;
+            });
+
+            bottomNavWatchHistory.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = `all_movies.html?filter=history`;
+            });
+
+
+            // --- Event Listeners (Existing) ---
+            searchBar.addEventListener('keyup', renderContent);
+            categoryFilter.addEventListener('change', renderContent);
+
+            // Initial fetch of all content
+            fetchAllContent();
+        });
+    </script>
+</body>
+</html>

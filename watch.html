@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Video - CineSphere</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Shared Styles */
+        body {
+            transition: background-color 0.3s, color 0.3s;
+            background-color: #1a1a1a; /* Default to dark mode */
+            color: #f8f9fa; /* Default text color */
+        }
+
+        body.light-mode {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+
+        /* Navbar */
+        .navbar-dark {
+            background-color: #1a1a1a !important;
+            border-bottom: 1px solid #333;
+        }
+        body.light-mode .navbar-dark {
+            background-color: #f8f9fa !important;
+            border-bottom: 1px solid #e9ecef;
+        }
+        body.light-mode .navbar-brand,
+        body.light-mode .navbar-nav .nav-link {
+            color: #212529 !important;
+        }
+        body.light-mode .btn-outline-light {
+            color: #212529;
+            border-color: #212529;
+        }
+        body.light-mode .btn-outline-light:hover {
+            background-color: #212529;
+            color: #f8f9fa;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1a1a1a !important;
+        }
+        body.light-mode footer {
+            background-color: #e9ecef !important;
+            color: #6c757d !important;
+        }
+
+        /* Custom Player Skin */
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0,0,0,0.7);
+        }
+        .video-player-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .video-details {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+        }
+        body.light-mode .video-details {
+            background-color: #ffffff;
+            color: #212529;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .video-details h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        .video-details .badge {
+            font-size: 0.9rem;
+            padding: 8px 12px;
+        }
+        .video-details p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-top: 15px;
+            color: #bbb;
+        }
+        body.light-mode .video-details p {
+            color: #495057;
+        }
+
+        /* Episode list section styling (Positioned above video details, below player) */
+        #episodeSection {
+            margin-top: 20px; /* Space between player and episode list */
+            /* Removed margin-bottom here, video-details has its own top margin */
+        }
+        #episodeListHeader {
+            background-color: #2a2a2a;
+            color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #333;
+        }
+        #episodeList .list-group-item {
+            background-color: #1f1f1f;
+            color: #f8f9fa;
+            border-color: #333;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        body.light-mode #episodeList .list-group-item {
+            background-color: #f0f0f0;
+            border-color: #e0e0e0;
+            color: #212529;
+        }
+        #episodeList .list-group-item:hover {
+            background-color: #333333;
+        }
+        body.light-mode #episodeList .list-group-item:hover {
+            background-color: #e9ecef;
+        }
+        #episodeList .list-group-item.active {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            color: white !important;
+        }
+        #episodeList .btn-sm {
+            padding: 0.25rem 0.5rem; /* Smaller buttons in list */
+            font-size: 0.75rem;
+        }
+        #episodeList .text-muted {
+            font-style: italic;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body class="bg-dark text-white">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">📺 CineSphere</a>
+            <span class="navbar-text ms-auto">
+                <a href="index.html" class="btn btn-outline-light"><i class="fas fa-arrow-left me-2"></i>Back to Home</a>
+            </span>
+        </div>
+    </nav>
+
+    <main class="container my-5">
+        <div class="row">
+            <div class="col-12"> <!-- Full width for player and associated content -->
+                <div class="video-player-container">
+                    <div id="youtubePlayer"></div>
+                </div>
+
+                <!-- Episode List Section (Conditional Display) -->
+                <div id="episodeSection" style="display:none;">
+                    <div class="card bg-dark text-white" style="border: 1px solid #333; border-radius: 8px;">
+                        <div id="episodeListHeader" style="background-color: #2a2a2a;">
+                            <h5 class="mb-0" id="seriesTitleForEpisodes">Episodes</h5>
+                        </div>
+                        <ul class="list-group list-group-flush" id="episodeList">
+                            <!-- Episodes will be loaded here by JavaScript -->
+                            <li class="list-group-item text-muted text-center">Loading episodes...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Video Details Section -->
+                <div class="video-details">
+                    <h1 id="videoTitle">Loading...</h1>
+                    <span class="badge bg-primary" id="videoCategory"></span>
+                    <p id="videoDescription">Loading video description...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white-50 py-4 mt-5">
+        <div class="container text-center">
+            <p>© 2024 CineSphere. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <!-- YouTube IFrame Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // Your Firebase configuration (REPLACE WITH YOUR ACTUAL CONFIG)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtZuh6HPTPeXgnPy60pQDfC2NnpWLRtS4",
+            authDomain: "taka-income-korbo.firebaseapp.com",
+            databaseURL: "https://taka-income-korbo-default-rtdb.firebaseio.com", // Your provided RTDB URL
+            projectId: "taka-income-korbo",
+            storageBucket: "taka-income-korbo.appspot.com",
+            messagingSenderId: "991679342035", // Derived from App ID or actual from console
+            appId: "1:991679342035:android:fac5f1f34a262c45a73b26"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let youtubePlayer; // Global variable for the YouTube player instance
+        let youtubeApiReady = false; // Flag to track if YouTube API is ready
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const movieId = urlParams.get('vid');
+            const seriesId = urlParams.get('sid');
+            const episodeId = urlParams.get('epid');
+
+            const videoTitle = document.getElementById('videoTitle');
+            const videoCategory = document.getElementById('videoCategory');
+            const videoDescription = document.getElementById('videoDescription');
+            const youtubePlayerDiv = document.getElementById('youtubePlayer');
+            const episodeSection = document.getElementById('episodeSection');
+            const episodeList = document.getElementById('episodeList');
+            const seriesTitleForEpisodes = document.getElementById('seriesTitleForEpisodes');
+
+
+            // Apply theme preference from localStorage
+            const savedTheme = localStorage.getItem('theme') || 'dark-mode';
+            document.body.classList.add(savedTheme);
+
+            // Defer initial video load until YouTube API is ready
+            const initialVideoLoad = () => {
+                if (seriesId) {
+                    // console.log("Loading series:", seriesId, "episode:", episodeId);
+                    fetchSeriesAndPlayEpisode(seriesId, episodeId);
+                } else if (movieId) {
+                    // console.log("Loading movie:", movieId);
+                    fetchMovieDetails(movieId);
+                } else {
+                    // console.log("No video ID provided.");
+                    videoTitle.textContent = 'Video Not Found';
+                    videoDescription.textContent = 'No video ID or series/episode ID provided in the URL.';
+                    youtubePlayerDiv.innerHTML = '<p class="text-center text-danger">Video ID missing.</p>';
+                    episodeSection.style.display = 'none';
+                }
+            };
+
+            // Global function called by YouTube IFrame Player API when it's ready
+            window.onYouTubeIframeAPIReady = () => {
+                // console.log("YouTube IFrame API is ready. Setting flag.");
+                youtubeApiReady = true;
+                initialVideoLoad(); // Now that API is ready, load the video
+            };
+
+            // Function to load/create the YouTube player
+            const loadYouTubePlayer = (youtubeId) => {
+                // console.log("Attempting to load YouTube player with ID:", youtubeId);
+                if (!youtubeApiReady) {
+                    console.warn("YouTube IFrame API not ready yet. Deferring player load.");
+                    return; // Do not attempt to create player if API not ready
+                }
+                if (!youtubeId) {
+                    console.error("No YouTube ID provided to loadYouTubePlayer.");
+                    youtubePlayerDiv.innerHTML = '<p class="text-center text-danger">YouTube video ID is missing.</p>';
+                    return;
+                }
+
+                // If player already exists, destroy it before creating a new one
+                if (youtubePlayer) {
+                    youtubePlayer.destroy();
+                }
+
+                // Create the YouTube player
+                youtubePlayer = new YT.Player('youtubePlayer', {
+                    videoId: youtubeId,
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 1,
+                        modestbranding: 1,
+                        rel: 0,
+                        showinfo: 0,
+                        iv_load_policy: 3,
+                        color: 'white',
+                        enablejsapi: 1,
+                        origin: window.location.origin
+                    },
+                    events: {
+                        'onReady': (event) => {
+                            // console.log('YouTube Player is ready. Video ID:', event.target.getVideoData().video_id);
+                            event.target.playVideo(); // Ensure video plays when ready
+                        },
+                        'onError': (event) => {
+                            console.error('YouTube Player Error:', event.data);
+                            youtubePlayerDiv.innerHTML = `<p class="text-center text-danger">YouTube Player Error: ${event.data}. Please check video ID or permissions.</p>`;
+                        }
+                    }
+                });
+            };
+
+
+            // --- Fetch Details for General Movies ---
+            const fetchMovieDetails = async (movieId) => {
+                try {
+                    const movieRef = database.ref('movies/' + movieId);
+                    movieRef.once('value', (snapshot) => {
+                        const movie = snapshot.val();
+                        if (movie) {
+                            videoTitle.textContent = movie.title;
+                            videoCategory.textContent = movie.category;
+                            videoDescription.textContent = movie.description;
+                            loadYouTubePlayer(movie.youtube_id); // Call player load
+                            addToWatchHistory(movieId);
+                        } else {
+                            videoTitle.textContent = 'Movie Not Found';
+                            videoDescription.textContent = 'The requested movie could not be found.';
+                            youtubePlayerDiv.innerHTML = '<p class="text-center text-danger">Movie not found.</p>';
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error fetching movie details:', error);
+                    videoTitle.textContent = 'Error Loading Movie';
+                    videoDescription.textContent = 'There was an error loading movie details. Please try again.';
+                    youtubePlayerDiv.innerHTML = '<p class="text-center text-danger">Error loading player.</p>';
+                }
+            };
+
+            // --- Fetch Series Info and Play Episode (for Anime) ---
+            const fetchSeriesAndPlayEpisode = async (seriesId, episodeIdToPlay) => {
+                try {
+                    const seriesRef = database.ref(`anime_series/${seriesId}`);
+                    seriesRef.once('value', (snapshot) => {
+                        const seriesData = snapshot.val();
+                        if (seriesData && seriesData.episodes) {
+                            const episodesArray = Object.keys(seriesData.episodes).map(key => ({
+                                id: key,
+                                ...seriesData.episodes[key]
+                            })).sort((a, b) => a.episode_number - b.episode_number);
+                            
+                            // Determine which episode to play
+                            let episodeToPlay = null;
+                            if (episodeIdToPlay) { // If specific episode ID is provided in URL
+                                episodeToPlay = episodesArray.find(ep => ep.id === episodeIdToPlay);
+                            } 
+                            // Fallback to first episode if no specific ID or specific ID not found
+                            if (!episodeToPlay && episodesArray.length > 0) { 
+                                episodeToPlay = episodesArray[0];
+                            }
+
+                            if (episodeToPlay) {
+                                videoTitle.textContent = `${seriesData.title} - Episode ${episodeToPlay.episode_number}: ${episodeToPlay.title}`;
+                                videoCategory.textContent = seriesData.category || 'Anime';
+                                videoDescription.textContent = episodeToPlay.description;
+                                loadYouTubePlayer(episodeToPlay.youtube_id); // Call player load
+
+                                addToWatchHistory(`series:${seriesId}:episode:${episodeToPlay.id}`); // Add history
+
+                                // Show episode list and render it
+                                seriesTitleForEpisodes.textContent = `${seriesData.title} Episodes`;
+                                episodeSection.style.display = 'block';
+                                renderEpisodeList(episodesArray, seriesId, episodeToPlay.id); // Pass all episodes and currently playing ID
+                            } else {
+                                videoTitle.textContent = 'No Playable Episode';
+                                videoDescription.textContent = 'This series has no episodes or the requested episode was not found.';
+                                youtubePlayerDiv.innerHTML = '<p class="text-center text-danger">No playable content.</p>';
+                                episodeSection.style.display = 'none';
+                            }
+                        } else {
+                            videoTitle.textContent = 'Series Not Found or No Episodes';
+                            videoDescription.textContent = 'The requested series could not be found or has no episodes.';
+                            youtubePlayerDiv.innerHTML = '<p class="text-center text-danger">Series not found.</p>';
+                            episodeSection.style.display = 'none';
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error fetching series and episode details:', error);
+                    videoTitle.textContent = 'Error Loading Series';
+                    videoDescription.textContent = 'There was an error loading series details. Please try again.';
+                    youtubePlayerDiv.innerHTML = '<p class="text-center text-danger">Error loading player.</p>';
+                    episodeSection.style.display = 'none';
+                }
+            };
+
+            const renderEpisodeList = (episodes, seriesId, currentlyPlayingEpisodeId) => {
+                episodeList.innerHTML = '';
+                episodes.forEach(episode => {
+                    const isActive = episode.id === currentlyPlayingEpisodeId ? 'active' : '';
+                    const listItem = document.createElement('li');
+                    listItem.className = `list-group-item d-flex justify-content-between align-items-center ${isActive}`;
+                    listItem.innerHTML = `
+                        <span>Episode ${episode.episode_number}: ${episode.title}</span>
+                        <a href="?sid=${seriesId}&epid=${episode.id}" class="btn btn-sm btn-primary"><i class="fas fa-play"></i></a>
+                    `;
+                    // Ensure the anchor tag's click event specifically updates the player
+                    listItem.querySelector('a').addEventListener('click', (e) => {
+                        e.preventDefault(); // Prevent default link navigation
+                        // Update URL parameters without reloading for smoother experience
+                        const newUrl = `watch.html?sid=${seriesId}&epid=${episode.id}`;
+                        window.history.pushState({path: newUrl}, '', newUrl); // Update URL in browser history
+                        
+                        // Dynamically update content without full page reload
+                        videoTitle.textContent = `${episodes.find(ep => ep.id === episode.id).title} (Episode ${episode.episode_number})`;
+                        videoDescription.textContent = episodes.find(ep => ep.id === episode.id).description;
+                        loadYouTubePlayer(episode.youtube_id); // Load new video
+                        addToWatchHistory(`series:${seriesId}:episode:${episode.id}`); // Update history
+
+                        // Update active state in list
+                        document.querySelectorAll('#episodeList .list-group-item').forEach(item => item.classList.remove('active'));
+                        listItem.classList.add('active');
+                    });
+                    episodeList.appendChild(listItem);
+                });
+            };
+
+            // --- Watch History ---
+            const addToWatchHistory = (id) => {
+                let history = localStorage.getItem('watchHistory');
+                history = history ? JSON.parse(history) : [];
+
+                history = history.filter(item => item !== id);
+                history.push(id);
+
+                const MAX_HISTORY = 20;
+                if (history.length > MAX_HISTORY) {
+                    history = history.slice(history.length - MAX_HISTORY);
+                }
+                localStorage.setItem('watchHistory', JSON.stringify(history));
+            };
+            
+            // Note: initial video load is now triggered by window.onYouTubeIframeAPIReady
+        });
+    </script>
+</body>
+</html>

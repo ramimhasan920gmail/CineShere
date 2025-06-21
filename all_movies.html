@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">All Movies & series - CineSphere</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Fonts: Montserrat (for headings) & Roboto (for body text) & Architects Daughter for title -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500&family=Architects+Daughter&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles & Typography */
+        body {
+            background-color: #1a1a1a; /* Dark background */
+            color: #f8f9fa; /* Light text */
+            font-family: 'Roboto', sans-serif; /* Professional body font, fallback to Arial */
+            padding-bottom: 20px;
+        }
+        body.light-mode { /* Consistency with dark/light mode */
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        
+        /* Custom Top Nav for all_movies.html (Matching image & professional touch) */
+        .top-nav-custom {
+            background-color: #1a1a1a !important; /* Slightly lighter than body for subtle contrast */
+            border-bottom: none;
+            padding: 1rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #f8f9fa;
+        }
+        .top-nav-custom .title-center {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 1.4rem; /* Adjusted for image scale */
+            font-weight: 700;
+            font-family: 'Architects Daughter', cursive;
+            margin: 0;
+            line-height: 1;
+        }
+        .top-nav-custom .back-arrow, .top-nav-custom .search-icon {
+            font-size: 1.5rem; /* Adjusted icon size */
+            color: #f8f9fa;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 0 8px; /* Add some clickable area */
+            transition: color 0.2s ease-in-out;
+        }
+        .top-nav-custom .back-arrow:hover, .top-nav-custom .search-icon:hover {
+            color: #E50914; /* Red accent on hover */
+        }
+        /* Hide search/filter row by default for the image-based UI */
+        #searchFilterRow {
+            display: none; 
+            padding: 0 1rem;
+        }
+        #searchFilterRow.show-flex {
+            display: flex !important;
+        }
+        /* Styling for search/filter inputs when visible */
+        .form-control, .form-select {
+            background-color: #282828;
+            color: #F8F8F8;
+            border: 1px solid #444444;
+            border-radius: 8px;
+            font-size: 0.9rem; /* Smaller font for inputs */
+        }
+        .form-control::placeholder {
+            color: #BBBBBB;
+            opacity: 0.7;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #282828;
+            color: #F8F8F8;
+            border-color: #E50914; /* Red accent on focus */
+            box-shadow: 0 0 0 0.25rem rgba(229, 9, 20, 0.25);
+        }
+
+
+        /* Movie Card for all_movies.html (Image-based UI & Professional Look - Smallest Size) */
+        .movie-card {
+            background-color: #1A1A1A; /* Very dark background for card */
+            border-radius: 12px; /* Smooth rounded corners */
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); /* Deeper, softer shadow */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            height: 100%; /* Ensure card fills grid cell height */
+            /* Removed fixed width/height for image as aspect-ratio handles this better */
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+            color: #F8F8F8; /* Ensure text inside is visible */
+        }
+        body.light-mode .movie-card {
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .movie-card:hover {
+            transform: translateY(-10px); /* Lift higher for more pop */
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8); /* Even deeper shadow on hover */
+        }
+        .movie-card img {
+            width: 100%;
+            height: auto; 
+            aspect-ratio: 2 / 3; /* Typical poster aspect ratio as seen in image (portrait) */
+            object-fit: cover;
+            border-radius: 12px 12px 0 0; /* Top corners rounded */
+            display: block;
+            transition: transform 0.3s ease-in-out; /* Smooth zoom on image */
+        }
+        .movie-card:hover img {
+            transform: scale(1.03); /* Subtle zoom on image hover */
+        }
+        /* No card-body, card-title, card-text, card-category, btn styles needed here as they are not in the image */
+        .movie-card .card-body {
+            padding: 0; 
+            min-height: 0;
+            line-height: 0;
+            font-size: 0;
+        }
+
+        /* Overlays for PG-13 and HD (Matching image) */
+        .card-overlay-tag {
+            position: absolute;
+            top: 8px; /* Slightly closer to top */
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.65rem; /* Slightly smaller font */
+            font-weight: bold;
+            text-transform: uppercase;
+            z-index: 5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .pg-13-tag {
+            left: 8px; /* Slightly closer to left */
+            background-color: #f8f8f8;
+            color: #1a1a1a;
+        }
+        .hd-tag {
+            right: 8px; /* Slightly closer to right */
+            background-color: #e50914;
+            color: #f8f8f8;
+        }
+
+        /* Episode Number (Matching image) */
+        .episode-number {
+            position: absolute;
+            bottom: 8px; /* Slightly closer to bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #f8f8f8;
+            padding: 4px 10px; /* Slightly smaller padding */
+            border-radius: 6px; /* Slightly smaller border-radius */
+            font-size: 0.8rem; /* Adjusted font size */
+            font-weight: 500;
+            z-index: 5;
+            white-space: nowrap;
+        }
+
+        /* --- CRITICAL: CSS Grid Layout for all_movies.html (2 Columns) --- */
+        /* This directly controls the grid layout for 2 columns as in the image */
+        #allMovieGrid {
+            display: grid; /* Use CSS Grid */
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Default: Auto-fill, min 150px wide, max 1fr */
+            gap: 1.5rem; /* Standard Bootstrap g-4 gap */
+            justify-content: center; /* Center grid items horizontally */
+            margin-bottom: 20px; /* Space below grid */
+        }
+        /* Adjust grid for different screen sizes */
+        /* Extra small devices (portrait phones, less than 576px) */
+        @media (max-width: 575.98px) {
+            #allMovieGrid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on phones */
+            }
+        }
+        /* Small devices (landscape phones, 576px and up) - 2 columns */
+        @media (min-width: 576px) {
+            #allMovieGrid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns */
+            }
+        }
+
+        /* Medium devices (tablets, 768px and up) - 2 columns */
+        @media (min-width: 768px) {
+            #allMovieGrid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns */
+            }
+        }
+
+        /* Large devices (desktops, 992px and up) - 2 columns */
+        @media (min-width: 992px) {
+            #allMovieGrid {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns */
+            }
+        }
+    </style>
+</head>
+<body class="bg-dark text-white">
+
+    <!-- Custom Top Navigation Bar for All Movies Page (Matching image) -->
+    <nav class="top-nav-custom">
+        <a href="index.html" class="back-arrow"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="title-center custom-font-title" id="pageTitleDisplay"> All Movies & series  </h1> <!-- Page Title Display -->
+        <a href="#" class="search-icon"><i class="fas fa-search"></i></a>
+    </nav>
+
+    <main class="container my-5">
+        <!-- Search and Category Filters - hidden as per image UI, but toggled by search icon -->
+        <div class="row mb-4" id="searchFilterRow"> 
+            <div class="col-md-6 mb-3">
+                <input type="text" class="form-control" id="searchBar" placeholder="Search movies by title...">
+            </div>
+            <div class="col-md-6 mb-3">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <!-- Categories will be populated by JS -->
+                </select>
+            </div>
+        </div>
+        
+        <!-- Grid for Movies - Standard Vertical Grid (Matching image) -->
+        <div id="allMovieGrid"> <!-- Changed to pure CSS Grid layout -->
+            <!-- Movie cards will be rendered here by JavaScript -->
+        </div>
+        <p id="noMoviesFound" class="col-12 text-center text-muted" style="display: none;">No movies found matching your criteria.</p>
+    </main>
+
+    <footer class="bg-dark text-white-50 py-4 mt-5">
+        <div class="container text-center">
+            <p>© 2024 CineSphere. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Firebase SDKs for Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script>
+        // Your Firebase configuration (REPLACE WITH YOUR ACTUAL CONFIG)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtZuh6HPTPeXgnPy60pQDfC2NnpWLRtS4",
+            authDomain: "taka-income-korbo.firebaseapp.com",
+            databaseURL: "https://taka-income-korbo-default-rtdb.firebaseio.com", // Your provided RTDB URL
+            projectId: "taka-income-korbo",
+            storageBucket: "taka-income-korbo.appspot.com",
+            messagingSenderId: "991679342035", // Derived from App ID or actual from console
+            appId: "1:991679342035:android:fac5f1f34a262c45a73b26"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const allMovieGrid = document.getElementById('allMovieGrid');
+            const searchBar = document.getElementById('searchBar');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const noMoviesFoundMessage = document.getElementById('noMoviesFound');
+            const pageTitleDisplay = document.getElementById('pageTitleDisplay');
+
+            const searchIcon = document.querySelector('.top-nav-custom .search-icon');
+            const searchFilterRow = document.getElementById('searchFilterRow');
+
+
+            let allMovies = [];
+            let categories = new Set();
+            let isSearchFilterVisible = false;
+
+
+            // Apply theme preference from localStorage (for consistency across pages)
+            const savedTheme = localStorage.getItem('theme') || 'dark-mode';
+            document.body.classList.add(savedTheme);
+
+
+            // --- Fetch Movies from Firebase Realtime Database ---
+            const fetchMovies = async () => {
+                try {
+                    const moviesRef = database.ref('movies');
+                    moviesRef.once('value', (snapshot) => {
+                        const moviesData = snapshot.val();
+                        if (moviesData) {
+                            allMovies = Object.keys(moviesData).map(key => {
+                                const movieData = moviesData[key];
+                                return {
+                                    id: key,
+                                    // Add dummy episode number for demo if not present in DB
+                                    episode: movieData.episode || `Episode ${Math.floor(Math.random() * 100) + 1}`,
+                                    ...movieData
+                                };
+                            });
+                        } else {
+                            allMovies = [];
+                        }
+                        populateCategories();
+                        
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const filterType = urlParams.get('filter');
+                        const categoryFromUrl = urlParams.get('category');
+
+                        allMovies.sort((a, b) => b.id.localeCompare(a.id));
+
+                        if (filterType === 'history') {
+                            renderWatchHistoryMovies();
+                            pageTitleDisplay.textContent = 'Your Watch History';
+                            searchFilterRow.classList.add('show-flex');
+                            isSearchFilterVisible = true;
+                        } else if (categoryFromUrl) {
+                            if (categories.has(categoryFromUrl)) {
+                                categoryFilter.value = categoryFromUrl;
+                            }
+                            renderMovies();
+                            pageTitleDisplay.textContent = `${categoryFromUrl} Movies`;
+                            searchFilterRow.classList.add('show-flex');
+                            isSearchFilterVisible = true;
+                        }
+                        else {
+                            renderMovies();
+                            pageTitleDisplay.textContent = 'All Movies & series';
+                            searchFilterRow.classList.remove('show-flex');
+                            isSearchFilterVisible = false;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error fetching movies from Firebase Realtime Database:', error);
+                    allMovieGrid.innerHTML = '<p class="col-12 text-center text-danger">Failed to load movies. Please try again later.</p>';
+                }
+            };
+
+            // --- Populate Category Filter ---
+            const populateCategories = () => {
+                categories.clear();
+                allMovies.forEach(movie => {
+                    if (movie.category) categories.add(movie.category);
+                });
+
+                categoryFilter.innerHTML = '<option value="">All Categories</option>';
+                Array.from(categories).sort().forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoryFilter.appendChild(option);
+                });
+            };
+
+            // --- Render Movies to Grid (for all_movies.html - VERTICAL GRID) ---
+            const renderMovies = () => {
+                const searchTerm = searchBar.value.toLowerCase();
+                const selectedCategory = categoryFilter.value;
+
+                const filteredMovies = allMovies.filter(movie => {
+                    const matchesSearch = movie.title && movie.title.toLowerCase().includes(searchTerm);
+                    const matchesCategory = selectedCategory === '' || (movie.category && movie.category === selectedCategory);
+                    return matchesSearch && matchesCategory;
+                });
+
+                allMovieGrid.innerHTML = '';
+
+                if (filteredMovies.length === 0) {
+                    noMoviesFoundMessage.style.display = 'block';
+                    noMoviesFoundMessage.textContent = 'No movies found matching your criteria.';
+                    return;
+                } else {
+                    noMoviesFoundMessage.style.display = 'none';
+                }
+
+                filteredMovies.forEach(movie => {
+                    const movieCard = `
+                        <div> <!-- This div will be a grid item -->
+                            <a href="watch.html?vid=${movie.id}" class="text-decoration-none">
+                                <div class="card movie-card">
+                                    <img src="${movie.thumbnail || 'https://via.placeholder.com/200x300?text=No+Image'}" class="card-img-top" alt="${movie.title} thumbnail">
+                                    <span class="card-overlay-tag pg-13-tag">PG-13</span>
+                                    <span class="card-overlay-tag hd-tag">HD</span>
+                                    <div class="episode-number">${movie.episode || 'Episode N/A'}</div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                    allMovieGrid.innerHTML += movieCard;
+                });
+            };
+
+            // --- Render Watch History Movies (specific for all_movies.html - VERTICAL GRID) ---
+            const renderWatchHistoryMovies = () => {
+                const history = localStorage.getItem('watchHistory');
+                const historyIds = history ? JSON.parse(history) : [];
+                allMovieGrid.innerHTML = '';
+
+                if (historyIds.length === 0) {
+                    noMoviesFoundMessage.textContent = "No watch history yet. Start watching some movies!";
+                    noMoviesFoundMessage.style.display = 'block';
+                    return;
+                } else {
+                    noMoviesFoundMessage.style.display = 'none';
+                }
+
+                const uniqueHistoryIds = [];
+                const seenIds = new Set();
+                for (let i = historyIds.length - 1; i >= 0; i--) {
+                    const movieId = historyIds[i];
+                    if (!seenIds.has(movieId)) {
+                        uniqueHistoryIds.push(movieId);
+                        seenIds.add(movieId);
+                    }
+                }
+
+                const historyMovies = uniqueHistoryIds
+                    .map(id => allMovies.find(m => m.id === id))
+                    .filter(Boolean);
+
+                if (historyMovies.length === 0) {
+                     localStorage.removeItem('watchHistory');
+                    noMoviesFoundMessage.textContent = "No watch history yet. Start watching some movies!";
+                    noMoviesFoundMessage.style.display = 'block';
+                    return;
+                }
+
+                historyMovies.forEach(movie => {
+                    const movieCard = `
+                        <div>
+                            <a href="watch.html?vid=${movie.id}" class="text-decoration-none">
+                                <div class="card movie-card">
+                                    <img src="${movie.thumbnail || 'https://via.placeholder.com/200x300?text=No+Image'}" class="card-img-top" alt="${movie.title} thumbnail">
+                                    <span class="card-overlay-tag pg-13-tag">PG-13</span>
+                                    <span class="card-overlay-tag hd-tag">HD</span>
+                                    <div class="episode-number">${movie.episode || 'Episode N/A'}</div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                    allMovieGrid.innerHTML += movieCard;
+                });
+            };
+
+            // --- Event Listeners for Search/Filter toggle ---
+            searchIcon.addEventListener('click', (e) => {
+                e.preventDefault();
+                isSearchFilterVisible = !isSearchFilterVisible;
+                if (isSearchFilterVisible) {
+                    searchFilterRow.classList.add('show-flex');
+                } else {
+                    searchFilterRow.classList.remove('show-flex');
+                    searchBar.value = '';
+                    categoryFilter.value = '';
+                    renderMovies(); // Re-render to show all if filters cleared
+                }
+            });
+
+            searchBar.addEventListener('keyup', renderMovies);
+            categoryFilter.addEventListener('change', renderMovies);
+
+            // Initial fetch of movies
+            fetchMovies();
+        });
+    </script>
+</body>
+</html>
